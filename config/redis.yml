@@ -1,0 +1,5 @@
+# Redis connection
+redis:
+  hostname: localhost
+  port: 6379
+  type: server # type: server / cluster

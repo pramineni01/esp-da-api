@@ -1,0 +1,32 @@
+extend type Query {
+    daDataQuery(
+        queries: [DAQueryInput!]!
+    ): [DAQueryResultConnection]
+
+    daDimMembersQuery(
+        queries: [DADimMembersQueryInput!]!
+    ): [DAQueryResultConnection]
+}
+
+extend type Mutation {
+    daUpdateData(
+        updates: UpdateDataInput!
+    ): ID!
+}
+
+# Input
+
+input UpdateDataInput {
+    datasetID: ID!
+    branchID: ID
+    changes: [UpdateMeasureInput!]!
+}
+
+input UpdateMeasureInput {
+    datatable: ID!
+    scope: DAQueryScopeInput
+    aggregatedMeasure: ID!
+    value: DADatasetMeasureValue!
+    type: DADataUpdateType!
+    weightingMeasure: ID
+}

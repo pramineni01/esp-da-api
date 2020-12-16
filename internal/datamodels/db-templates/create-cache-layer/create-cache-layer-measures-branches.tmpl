@@ -1,0 +1,13 @@
+CREATE TABLE `cache_layer_{{.CacheLayerID}}_measures_{{.MeasureType}}_branches` (
+  `cache_layer_{{.CacheLayerID}}_id` bigint(20) NOT NULL,
+  `measure_aggregation_id` smallint(6) NOT NULL,
+  `value` float DEFAULT NULL,
+  `branch_id` int(10) unsigned NOT NULL,
+  `start_timestamp` timestamp(6) GENERATED ALWAYS AS ROW START INVISIBLE,
+  `end_timestamp` timestamp(6) GENERATED ALWAYS AS ROW END INVISIBLE,
+  PRIMARY KEY (`cache_layer_{{.CacheLayerID}}_id`,`measure_aggregation_id`,`branch_id`,`end_timestamp`),
+  KEY `cache_layer_{{.CacheLayerID}}_measures_{{.MeasureType}}_branches_idx` (`cache_layer_{{.CacheLayerID}}_id`,`end_timestamp`) USING BTREE,
+  PERIOD FOR SYSTEM_TIME (`start_timestamp`, `end_timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 WITH SYSTEM VERSIONING
+ PARTITION BY LINEAR HASH (`cache_layer_{{.CacheLayerID}}_id`)
+PARTITIONS {{.Partitions}};

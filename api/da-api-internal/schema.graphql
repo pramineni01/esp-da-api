@@ -1,0 +1,225 @@
+extend type Query {
+    daDataset(
+        id: ID!
+    ): DADataset
+}
+
+extend type Mutation {
+    daIngestStagingTables(
+        datasetID: ID!
+        stagingTableIDs: [ID!]!
+    ): ID
+}
+
+
+# Input
+
+input DADataViewAlias {
+    src: String!
+    dst: String!
+}
+
+
+# Local types
+
+scalar Time
+
+type DADataset @key(fields: "id") {
+    id: ID!
+    name: String!
+    description: String!
+    version: String!
+    datasourceID: ID!
+
+    dataVersion(
+        version: ID
+        branchID: ID
+    ): DAVersion
+
+    datatable(
+        id: ID
+        tableName: ID
+        measureColumnName: ID
+    ): DADatatable
+
+    dimensionLevels(
+        dimensionID: ID
+        dimensionColumnName: ID
+    ): [DADimensionLevel!]
+
+    measures(
+        aggregated: Boolean
+    ): [DADatasetMeasure!]
+}
+
+type DADatatable @key(fields: "datasetID id") {
+    datasetID: ID!
+    id: ID!
+    tableName: ID!
+
+    dimensionLevels(
+        dimensionID: ID
+        dimensionColumnName: ID
+    ): [DADimensionLevel!]
+
+    measures: [DAMeasure!]
+
+    dataView(
+        branchID: ID
+        version: ID
+        scope: DAQueryScopeInput
+        dimensionLevels: [ID!]
+        aggregatedMeasures: [ID!]!
+        userID: ID
+        allData: Boolean! = false
+        localeID: ID
+        dimMemberAttributes: [DADimensionMemberAttribute!]
+        aliases: [DADataViewAlias!]
+        partitioned: Boolean! = false
+    ): DASQLQuery!
+
+    dataframeQueries(
+        branchID: ID
+        version: ID
+        scope: DAQueryScopeInput
+        dimensionLevels: [ID!]
+        aggregatedMeasures: [ID!]!
+        userID: ID
+        allData: Boolean! = false
+        localeID: ID
+        dimMemberAttributes: [DADimensionMemberAttribute!]
+        aliases: [DADataViewAlias!]
+    ): DADataframeQueries!
+
+    stagingTable(
+        branchID: ID
+        scope: DAQueryScopeInput
+        measures: [ID!]!
+        userID: ID
+        allData: Boolean! = false
+        numPartitions: Int = 0
+    ): DAStagingTable!
+}
+
+type DAVersion {
+    id: ID!
+    branchID: ID
+    userID: ID
+    status: DAVersionStatus
+    appliedTimestamp: Time
+    startedTimestamp: Time
+    keepaliveTimestamp: Time
+}
+
+enum DAVersionStatus {
+    PENDING
+    IN_PROGRESS
+    ERROR
+    APPLIED
+}
+
+enum DADimensionMemberAttribute {
+    NAME
+    DESCRIPTION
+    EXTERNAL_ID
+}
+
+type DADimension @key(fields: "datasetID columnName") {
+    datasetID: ID!
+    id: ID!
+    columnName: ID!
+}
+
+type DADimensionLevel @key(fields: "datasetID columnName") {
+    datasetID: ID!
+    id: ID!
+    dimension: DADimension!
+    columnName: ID!
+}
+
+enum DAMeasureCastType {
+    BINARY
+    CHAR
+    DATE
+    DATETIME
+    DOUBLE
+    FLOAT
+    SIGNED INTEGER
+    UNSIGNED INTEGER
+    TIME
+}
+
+type DAMeasure @key(fields: "datasetID columnName") {
+    datasetID: ID!
+    id: ID!
+    datatableID: ID!
+    columnName: ID!
+    castType: DAMeasureCastType!
+}
+
+type DAAggregatedMeasure @key(fields: "datasetID columnName") {
+    datasetID: ID!
+    id: ID!
+    measure: DAMeasure!
+    aggregationType: DAAggregationType!
+    formula: String
+    columnName: ID!
+    castType: DAMeasureCastType!
+}
+
+enum DAAggregationType {
+    COUNT
+    SUM
+    MIN
+    MAX
+    BASE_ONLY
+    FORMULA
+}
+
+union DADatasetMeasure = DAMeasure | DAAggregatedMeasure
+
+type DABranch @key(fields: "datasetID id")  {
+    datasetID: ID!
+    id: ID!
+}
+
+type DAStagingTable {
+    datasetID: ID!
+    id: ID!
+    tableName: String!
+}
+
+type DASQLQuery {
+    metadata: [DASQLQueryColumn]!
+    query: String
+    partitionedQueries: [String!]
+}
+
+type DASQLQueryColumn {
+    name: String!
+    type: DAMeasureCastType!
+}
+
+type DADataframeQueries {
+    partitions: Int!
+    dimLevelQueries: [DADataframeDimLevelQuery!]
+    measureQueries: [DADataframeMeasureQuery!]
+}
+
+type DADataframeDimLevelQuery {
+    query: String!
+    partition: Int!
+    metadata: [DADataframeColumn]!
+}
+
+type DADataframeMeasureQuery {
+    measureName: String!
+    query: String!
+    partition: Int!
+    metadata: [DADataframeColumn]!
+}
+
+type DADataframeColumn {
+    name: String!
+    type: DAMeasureCastType!
+}

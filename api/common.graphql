@@ -1,0 +1,151 @@
+# Input
+
+input DAQueryInput {
+    datasetID: ID!
+    datatable: ID!
+    branchID: ID
+    version: ID
+    scope: DAQueryScopeInput
+    dimensionLevels: [ID!]!
+    aggregatedMeasures: [ID!]!
+    postAggFilter: DAQueryPostAggFilterInput
+    sort: DAQuerySortInput
+    postAggGrouping: DAQueryPostAggGroupingInput
+    # Pagination
+    first: Int
+    after: String
+}
+
+input DADimMembersQueryInput {
+    datasetID: ID!
+    datatable: ID!
+    branchID: ID
+    version: ID
+    scope: DAQueryScopeInput
+    search: DAQuerySearchInput
+    dimensionLevels: [ID!]!
+    sort: DAQuerySortInput
+
+    # Pagination
+    first: Int
+    after: String
+}
+
+input DAQueryScopeInput {
+  dimensionFilters: [DADimensionFilterInput!]
+}
+ 
+input DADimensionFilterInput {
+  dimensionColumnName: ID!
+  and: [DADimensionLevelFilterInput!]
+  or: [DADimensionLevelFilterInput!]
+}
+
+input DADimensionLevelFilterInput {
+  dimensionLevelColumnName: ID!
+  cmpOperator: DAComparisonOperator!
+  values: [ID!]!
+}
+
+enum DAComparisonOperator {
+    IN
+}
+
+input DAQuerySearchInput {
+    dimensionFilters: [DADimensionSearchFilterInput!]
+}
+
+input DADimensionSearchFilterInput {
+    dimensionColumnName: ID!
+    levelFilters: [DADimensionLevelSearchFilterInput!]!
+}
+
+input DADimensionLevelSearchFilterInput {
+    dimensionLevelColumnName: ID!
+    keyword: String!
+}
+
+input DAQueryPostAggFilterInput {
+    measureFilters: [DAMeasureFilterInput!]
+    and: [DAMeasureFilterInput!]
+    or: [DAMeasureFilterInput!]
+}
+
+input DAQueryPostAggGroupingInput {
+    groupByColumns: [ID!]!
+    aggregatedMeasures: [ID!]!
+}
+
+input DAMeasureFilterInput {
+    measureColumnName: ID!
+    measureMultiplier: Float
+    operator: DARelationalOperator!
+    value: [DADatasetMeasureValue!]
+    dstMeasureColumnName: ID
+    dstMultiplier: Float
+}
+
+enum DARelationalOperator {
+    EQ
+    NE
+    GE
+    GT
+    LE
+    LT
+    IN
+}
+
+input DAQuerySortInput {
+    entries: [DAQuerySortEntryInput!]
+}
+
+input DAQuerySortEntryInput {
+    columnName: ID!
+    direction: DAQuerySortDirection!
+}
+
+enum DAQuerySortDirection {
+    ASC
+    DESC
+}
+
+enum DADataUpdateType {
+    PLUGGING
+    EQUAL_SPLIT
+    WEIGHTED
+}
+
+
+# Types
+
+scalar DADatasetMeasureValue
+
+type DAPageInfo {
+    totalRows: Int
+    hasNextPage: Boolean!
+}
+
+type DAQueryResultConnection {
+    edges: [DAQueryResultEdge]
+    pageInfo: DAPageInfo!
+    error: String
+}
+
+type DAQueryResultEdge {
+    node: DAQueryResult
+    cursor: String!
+}
+
+type DAQueryResult {
+    dimensionMembers: [DADimensionMember!]
+    measureValues: [DADatasetMeasureValue]
+}
+
+type DADimensionMember @key(fields: "datasetID id") {
+    datasetID: ID!
+    id: ID!
+    dimensionLevelColumnName: ID!
+    name: String!
+    description: String
+    externalID: ID
+}

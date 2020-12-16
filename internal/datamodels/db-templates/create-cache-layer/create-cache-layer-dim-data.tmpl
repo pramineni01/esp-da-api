@@ -1,0 +1,16 @@
+CREATE TABLE `cache_layer_{{.CacheLayerID}}_dimension_data` (
+  `cache_layer_{{.CacheLayerID}}_id` bigint(20) unsigned NOT NULL,
+  {{range .DimensionLevels}}
+    `{{.}}_id` int(10) unsigned DEFAULT NULL,
+  {{end}}
+  `count` bigint(20) unsigned NOT NULL,
+  `start_timestamp` timestamp(6) GENERATED ALWAYS AS ROW START INVISIBLE,
+  `end_timestamp` timestamp(6) GENERATED ALWAYS AS ROW END INVISIBLE,
+  PRIMARY KEY (`cache_layer_{{.CacheLayerID}}_id`, `end_timestamp`),
+  {{range .DimensionLevels}}
+    KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_id_idx` (`{{.}}_id`, `end_timestamp`) USING BTREE,
+  {{end}}
+  PERIOD FOR SYSTEM_TIME (`start_timestamp`, `end_timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 WITH SYSTEM VERSIONING
+ PARTITION BY LINEAR HASH (`cache_layer_{{.CacheLayerID}}_id`)
+PARTITIONS {{.Partitions}};

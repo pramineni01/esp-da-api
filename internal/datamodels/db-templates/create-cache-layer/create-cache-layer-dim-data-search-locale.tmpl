@@ -1,0 +1,25 @@
+CREATE TABLE `cache_layer_{{.CacheLayerID}}_dimension_data_search_locale_{{.LocaleID}}` (
+  `cache_layer_{{.CacheLayerID}}_id` bigint(20) unsigned NOT NULL,
+  `start_timestamp` timestamp(6) GENERATED ALWAYS AS ROW START INVISIBLE,
+  `end_timestamp` timestamp(6) GENERATED ALWAYS AS ROW END INVISIBLE,
+  {{range .DimensionLevels}}
+    `{{.}}_id` int(10) unsigned DEFAULT NULL,
+    `{{.}}_name` varchar(256) NOT NULL,
+    `{{.}}_description` varchar(1024) DEFAULT NULL,
+    `{{.}}_external_id` varchar(256) DEFAULT NULL,
+  {{end}}
+  PRIMARY KEY (`cache_layer_{{.CacheLayerID}}_id`,`end_timestamp`),
+  {{range .DimensionLevels}}
+    KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_id_idx` (`{{.}}_id`, `end_timestamp`) USING BTREE,
+    KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_name_idx` (`{{.}}_name`, `end_timestamp`) USING BTREE,
+    KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_ex_idx` (`{{.}}_external_id`, `end_timestamp`) USING BTREE,
+  {{end}}
+  {{range .DimensionLevels}}
+    FULLTEXT KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_name_fullidx` (`{{.}}_name`),
+    FULLTEXT KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_desc_fullidx` (`{{.}}_description`),
+    FULLTEXT KEY `cache_layer_{{$.CacheLayerID}}_{{.}}_ex_fullidx` (`{{.}}_external_id`),
+  {{end}}
+  PERIOD FOR SYSTEM_TIME (`start_timestamp`, `end_timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 WITH SYSTEM VERSIONING
+ PARTITION BY LINEAR HASH (`cache_layer_{{.CacheLayerID}}_id`)
+PARTITIONS {{.Partitions}};

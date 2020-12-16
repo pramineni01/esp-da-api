@@ -1,0 +1,20 @@
+da:
+ user: root
+ password: y1i8me3RReBnc1ZXfCf9CIRe
+ hostname: 10.40.1.8
+ port: 3306
+ db_name: da
+ type: mysql
+datasources:
+  - datasource_id: 1
+    user: root
+    password: y1i8me3RReBnc1ZXfCf9CIRe
+    hostname: 10.40.1.8
+    port: 3306
+    type: mysql
+  - datasource_id: 2
+    user: root
+    password: y1i8me3RReBnc1ZXfCf9CIRe
+    hostname: 10.40.1.8
+    port: 3306
+    type: mysql
